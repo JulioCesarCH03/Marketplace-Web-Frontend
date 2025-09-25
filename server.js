@@ -5,10 +5,10 @@ const PORT = process.env.PORT || 5173;
 
 app.use(express.static(path.join(__dirname, 'dist')));
 
-app.get('/*', (req, res) => {
+app.get('/:any(*)', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`Frontend corriendo en puerto ${PORT}`);
+  console.log(`✅ Frontend corriendo en puerto ${PORT}`);
 });

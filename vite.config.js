@@ -5,14 +5,14 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 5173,
-    // ⚠️ ELIMINA ESTO O COMÉNTALO
-    // proxy: {
-    //   '/api': {
-    //     target: 'https://scraper-alquileres-backend.onrender.com',
-    //     changeOrigin: true,
-    //     rewrite: (path) => path.replace(/^\/api/, ''),
-    //   },
-    // },
+    port: 5173, // Puerto típico de Vite (puedes cambiarlo a 3000 si prefieres)
+    host: 'localhost',
+    proxy: {
+      '/api': {
+        target: 'https://marketplace-web-backe.onrender.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
   },
 })

@@ -6,11 +6,14 @@ import {
 import axios from 'axios'
 import './index.css'
 
+// === Config API para producción en Render ===
+const API = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+
 // === Constantes UI ===
 const PAGE_SIZE = 20
 const LS_KEY_RECENTS = 'scraper_recents_v1'
 
-// Normaliza URLs (https, evita //)
+// Normaliza URLs
 const normalizeUrl = (u) => {
   if (!u) return '#'
   if (u.startsWith('//')) return 'https:' + u
@@ -29,7 +32,7 @@ export default function App() {
     palabras_clave: ''
   })
 
-  // resultados + meta (desde backend)
+  // resultados + meta
   const [results, setResults] = useState([])
   const [meta, setMeta] = useState(null)
   const [page, setPage] = useState(1)
@@ -39,17 +42,17 @@ export default function App() {
   const [error, setError] = useState('')
   const [hasSearched, setHasSearched] = useState(false)
 
-  // más buscados (opcional) + recientes (local)
+  // más buscados + recientes
   const [trending, setTrending] = useState([])
   const [recents, setRecents] = useState(() => {
     try { return JSON.parse(localStorage.getItem(LS_KEY_RECENTS)) || [] } catch { return [] }
   })
 
-  // destacados para el home (exactamente 9, reales)
+  // destacados para el home
   const [featured, setFeatured] = useState([])
   const [homeLoading, setHomeLoading] = useState(false)
 
-  // ---- NUEVA CONSTANTE: Determina si al menos un filtro es válido ----
+  // Validación de búsqueda
   const isSearchValid = useMemo(() => {
     const { zona, dormitorios, banos, price_min, price_max, palabras_clave } = searchData;
     return (
@@ -98,7 +101,7 @@ export default function App() {
         page: targetPage,
         page_size: PAGE_SIZE
       }
-      const res = await axios.get(`/api/search`, { params })
+      const res = await axios.get(`${API}/search`, { params })
       const data = res.data
       if (data?.success) {
         setResults(Array.isArray(data.properties) ? data.properties : [])
@@ -151,12 +154,12 @@ export default function App() {
     try { localStorage.removeItem(LS_KEY_RECENTS) } catch {}
   }
 
-  // ---- trending (opcional) ----
+  // ---- trending ----
   useEffect(() => {
     let cancel = false
     ;(async () => {
       try {
-        const res = await axios.get(`/api/trending`)
+        const res = await axios.get(`${API}/trending`)
         if (!cancel && Array.isArray(res.data?.items) && res.data.items.length) {
           setTrending(res.data.items)
         }
@@ -165,14 +168,13 @@ export default function App() {
     return () => { cancel = true }
   }, [])
 
-  // ---- home feed -> usa directamente "featured" (9 reales) ----
+  // ---- home feed ----
   useEffect(() => {
     let cancel = false
     ;(async () => {
       setHomeLoading(true)
       try {
-        const res = await axios.get(`/api/home-feed`)
-        // Prioriza featured del backend; si no, intenta aplanar sections y cortar a 9
+        const res = await axios.get(`${API}/home-feed`)
         let feats = Array.isArray(res.data?.featured) ? res.data.featured : []
         if ((!feats || feats.length === 0) && Array.isArray(res.data?.sections)) {
           const flat = []
@@ -263,7 +265,6 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Header */}
       <header className="header">
         <div className="container">
           <h1><Home size={32} /> Scraper de Alquileres</h1>
@@ -271,7 +272,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* === Filtros === */}
       <main className="container">
         <form onSubmit={handleSearch} className="search-form">
           <div className="form-grid">
